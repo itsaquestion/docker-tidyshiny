@@ -1,0 +1,40 @@
+version: "2"
+
+services:
+  tidyshiny:
+    image: imtass/tidyshiny:3.5.3
+    build:
+      context: .
+    container_name: tidyshiny
+    volumes:
+      - ./home:/home
+      - ./home/rstudio/ncovsearch:/srv/shiny-server/ncovsearch
+      - "/etc/localtime:/etc/localtime:ro"
+    ports:
+      - "127.0.0.1:3838:3838"
+      - "127.0.0.1:8787:8787"
+    environment:
+      ROOT: 'true'
+      PASSWORD: ${RSTUDIO_PWD}
+    restart: always
+    networks:
+      - backend
+
+  database:
+    container_name: tidyshiny_database
+    image: "postgres:9.5" # use latest official postgres version
+    env_file:
+      - database.env # configure postgres
+    volumes:
+      - tidyshiny_data:/var/lib/postgresql/data/ # persist data even if container shuts down
+#    ports:
+#      - "127.0.0.1:5432:5432"
+    restart: always
+    networks:
+      - backend
+
+volumes:
+  tidyshiny_data: # named volumes can be managed easier using docker-compose
+
+networks:
+  backend:
